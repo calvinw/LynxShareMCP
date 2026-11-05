@@ -26,7 +26,9 @@ log = logging.getLogger("lynx_share_mcp")
 
 client = LynxClient()
 
-DEFAULT_BIN = "~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX"
+# JUCE's build output: an app bundle on macOS, a plain executable on Linux.
+DEFAULT_BIN = ("~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX" if sys.platform == "darwin"
+               else "~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX")
 BUILTIN_INSTRUMENTS = ("synth", "kick", "snare", "hat", "clap", "sampler")
 
 # The project file this server last opened or saved, so save_project can default to it.

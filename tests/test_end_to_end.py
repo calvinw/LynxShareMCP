@@ -1,7 +1,8 @@
 """End to end: an MCP client calls this server over stdio, which drives a real LYNX SHARE (with its window) on a
 temporary socket. Skipped unless LYNX_BIN names the app's binary.
 
-    LYNX_BIN=~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX .venv/bin/pytest -v
+    LYNX_BIN=~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX .venv/bin/pytest -v   # macOS
+    LYNX_BIN=~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX .venv/bin/pytest -v                           # Linux
 """
 
 from __future__ import annotations
@@ -127,7 +128,8 @@ def test_plugins_and_errors(lynx_socket):
     async def body(call):
         plugins = await call("list_plugins", instruments_only=True)
         assert "synth" in plugins["builtin_instruments"]
-        assert any(p["name"] == "Serum 2" for p in plugins["plugins"]), [p["name"] for p in plugins["plugins"]]
+        if sys.platform == "darwin":  # Serum 2 is installed on the Mac; Linux has no build of it
+            assert any(p["name"] == "Serum 2" for p in plugins["plugins"]), [p["name"] for p in plugins["plugins"]]
 
         with pytest.raises(RuntimeError, match="pattern"):
             await call("get_notes", pattern=99999)

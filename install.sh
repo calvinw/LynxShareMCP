@@ -4,7 +4,12 @@
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
-BIN="${1:-${LYNX_BIN:-$HOME/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX}}"
+if [ "$(uname)" = Darwin ]; then
+  DEFAULT_BIN="$HOME/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX"
+else
+  DEFAULT_BIN="$HOME/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX"
+fi
+BIN="${1:-${LYNX_BIN:-$DEFAULT_BIN}}"
 [ -x "$BIN" ] || echo "Warning: LYNX binary not found at $BIN (lynx_launch needs it; build LYNX-SHARE or pass the path)."
 
 PYTHON="$(command -v python3.12 || command -v python3.11 || command -v python3.10 || command -v python3)"
