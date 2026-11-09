@@ -37,7 +37,7 @@ Environment: `LYNX_SOCKET` (default `/tmp/lynx.sock`), `LYNX_BIN` (the app binar
 ## Tools
 
 `lynx_launch`, `lynx_status`, `get_project_state`, `get_notes`, `list_plugins`, `get_history`, `write_notes`,
-`clear_notes`, `add_channel`, `set_channel`, `set_synth`, `delete_channel`, `add_pattern`, `delete_pattern`,
+`clear_notes`, `add_channel`, `set_channel`, `set_synth`, `delete_channel`, `add_pattern`, `rename_pattern`, `delete_pattern`,
 `place_pattern`, `delete_clip`, `set_tempo`, `play`, `pause`, `stop`, `transport_status`, `select`, `undo`, `redo`,
 `save_project`, `apply_commands`.
 

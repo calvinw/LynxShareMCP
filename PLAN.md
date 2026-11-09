@@ -106,7 +106,9 @@ Each item is a new `apply` op or method in `ControlServer.cpp` plus its MCP tool
 5. **Render** — `render_project` via the headless CLI: `LYNX --export project.lynx out.wav`.
 6. **Change events** — a `changes` method (or pushed notifications) so the MCP sees edits made in the window
    (`AudioEngine` is a `ChangeBroadcaster`; diff by `getSongStamp()`).
-7. **Small fixes found in the spike** — `play` reports the position from before its `from` seek (the audio thread
+7. **Small fixes found in the spike** — `apply` returns `id: 0` for things it adds when the same batch also deletes
+   channels/patterns (the uid fixups look items up by index after the deletes shifted them; capture uids by identity
+   instead); the history ignores the `name` param (labels come from the app, e.g. a whole batch shows as "Add pattern"); `play` reports the position from before its `from` seek (the audio thread
    applies the seek a block later); `set_synth` exists in the build but has only been compiled, not exercised.
 8. **Windows** — the socket is POSIX-only; use a named pipe or a localhost TCP port with a token (as Lemon does).
 

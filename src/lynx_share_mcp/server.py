@@ -275,6 +275,12 @@ def build_app() -> MCPServer:
         return {"deleted": pattern}
 
     @mcp.tool()
+    def rename_pattern(pattern: int, name: str) -> dict:
+        """Rename pattern `pattern` (an id) to `name`."""
+        _edit("Rename pattern", {"op": "set_pattern", "pattern": pattern, "name": name})
+        return {"pattern": pattern, "name": name}
+
+    @mcp.tool()
     def place_pattern(pattern: int, position: float, track: int = 0, length: float | None = None,
                       unit: Unit = "beats") -> dict:
         """Place pattern `pattern` (an id) in the playlist on track `track` (0-based) at `position`. length defaults
@@ -362,7 +368,8 @@ def build_app() -> MCPServer:
         """Run raw control-socket commands as ONE undo step, all or nothing. Positions and lengths here are raw
         ticks; note velocity and pan 0..128. Each command is {"op": ..., fields...}. Ops: add_channel {name,
         instrument, sample, track}, set_channel {channel, name, volume, pan, muted, track}, delete_channel {channel},
-        set_synth {channel, ...}, add_pattern {name}, delete_pattern {pattern}, set_notes / add_notes {pattern,
+        set_synth {channel, ...}, add_pattern {name}, set_pattern {pattern, name},
+        delete_pattern {pattern}, set_notes / add_notes {pattern,
         notes[], channel}, add_clip {pattern, track, position, length}, delete_clip {clip}, set_tempo {bpm}.
         Returns each command's result (new things' ids)."""
         return {"results": client.apply(commands, name=name)}
