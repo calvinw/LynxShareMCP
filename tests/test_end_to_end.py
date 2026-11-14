@@ -1,8 +1,8 @@
 """End to end: an MCP client calls this server over stdio, which drives a real LYNX SHARE (with its window) on a
 temporary socket. Skipped unless LYNX_BIN names the app's binary.
 
-    LYNX_BIN=~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX .venv/bin/pytest -v   # macOS
-    LYNX_BIN=~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX .venv/bin/pytest -v                           # Linux
+    LYNX_BIN=../LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX .venv/bin/pytest -v   # macOS
+    LYNX_BIN=../LYNX-SHARE/build/LYNX_artefacts/Release/LYNX .venv/bin/pytest -v                           # Linux
 """
 
 from __future__ import annotations

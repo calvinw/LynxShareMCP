@@ -1,7 +1,7 @@
 """A JSON-RPC 2.0 client for LYNX SHARE's control socket.
 
-LYNX SHARE listens on a local Unix socket when started with `--control <socket>` (the `control-socket` branch of
-~/develop/LYNX-SHARE, src/engine/ControlServer.cpp). One request per line, one answer per line, one client at a time.
+LYNX SHARE listens on a local Unix socket when started with `--control <socket>` (only builds of the
+`control-socket` branch of github.com/calvinw/LYNX-SHARE; see src/engine/ControlServer.cpp there). One request per line, one answer per line, one client at a time.
 
 Where it connects, from the environment:
     LYNX_SOCKET   the Unix socket path (default /tmp/lynx.sock).

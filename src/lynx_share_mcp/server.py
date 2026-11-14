@@ -1,13 +1,11 @@
 """lynx-share-mcp: an MCP server that drives LYNX SHARE over its control socket.
 
 Run with:
-    python -m lynx_share_mcp                                   # stdio (Claude Code)
-    python -m lynx_share_mcp --transport http --host 0.0.0.0   # streamable HTTP on :8000
+    python -m lynx_share_mcp        # stdio, started by an MCP client such as Claude Code or Codex
 """
 
 from __future__ import annotations
 
-import argparse
 import logging
 import os
 import subprocess
@@ -26,9 +24,10 @@ log = logging.getLogger("lynx_share_mcp")
 
 client = LynxClient()
 
-# JUCE's build output: an app bundle on macOS, a plain executable on Linux.
-DEFAULT_BIN = ("~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX" if sys.platform == "darwin"
-               else "~/develop/LYNX-SHARE/build/LYNX_artefacts/Release/LYNX")
+# Used when LYNX_BIN is unset: a LYNX-SHARE clone next to this repo, built with CMake into build/. JUCE's build output
+# is an app bundle on macOS and a plain executable on Linux.
+_BUILD = Path(__file__).resolve().parents[3] / "LYNX-SHARE" / "build" / "LYNX_artefacts" / "Release"
+DEFAULT_BIN = str(_BUILD / "LYNX.app/Contents/MacOS/LYNX" if sys.platform == "darwin" else _BUILD / "LYNX")
 BUILTIN_INSTRUMENTS = ("synth", "kick", "snare", "hat", "clap", "sampler")
 
 # The project file this server last opened or saved, so save_project can default to it.
@@ -53,7 +52,7 @@ How the project works:
 - The piano roll shows ONE channel in the CURRENT pattern. After writing notes the user should look at, call
   select(pattern=..., channel=..., piano_roll=True) so they are on screen. Use select, not play/stop, to change the
   current pattern.
-- Every edit tool is one undo step; the user can undo it with Cmd+Z. apply_commands runs several raw commands as one
+- Every edit tool is one undo step; the user can undo it with Cmd+Z (Ctrl+Z on Linux). apply_commands runs several raw commands as one
   step, all or nothing.
 
 Writing music:
@@ -114,7 +113,8 @@ def build_app() -> MCPServer:
             return {"running": True, "already": True, "socket": client.path}
         exe = _binary()
         if not os.access(exe, os.X_OK):
-            raise LynxError(f"LYNX SHARE's binary was not found at {exe}: build it or set LYNX_BIN")
+            raise LynxError(f"LYNX SHARE's binary was not found at {exe}: build the control-socket branch of "
+                            "github.com/calvinw/LYNX-SHARE and set LYNX_BIN to it (see the README)")
         args = [exe]
         if project:
             # LYNX opens only args[0], and only when it is an absolute path.
@@ -123,6 +123,9 @@ def build_app() -> MCPServer:
                 raise LynxError(f"no such project file: {p}")
             args.append(str(p))
         path = socket_path()
+        if len(os.fsencode(path)) > 103:  # sun_path holds 104 bytes on macOS (108 on Linux), including the NUL
+            raise LynxError(f"the socket path is too long for a Unix socket ({len(path)} characters): {path}. "
+                            "Set LYNX_SOCKET to a shorter path such as /tmp/lynx.sock")
         args += ["--control", path]
         log_path = Path(os.environ.get("TMPDIR", "/tmp")) / "lynx-share-mcp-app.log"
         with open(log_path, "ab") as out:
@@ -134,7 +137,9 @@ def build_app() -> MCPServer:
                 if project:
                     _project_path = args[1]
                 return {"running": True, "socket": path, "project": _project_path, "log": str(log_path)}
-        raise LynxError(f"LYNX SHARE did not start listening at {path} within 20 s; see {log_path}")
+        raise LynxError(f"LYNX SHARE did not start listening at {path} within 20 s; see {log_path}. "
+                        "Official LYNX SHARE releases have no control socket: LYNX_BIN must be a build of the "
+                        "control-socket branch of github.com/calvinw/LYNX-SHARE")
 
     @mcp.tool()
     def lynx_status() -> dict:
@@ -378,16 +383,7 @@ def build_app() -> MCPServer:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="LYNX SHARE MCP server")
-    parser.add_argument("--transport", choices=["stdio", "http"], default="stdio")
-    parser.add_argument("--host", default="127.0.0.1", help="host for HTTP (0.0.0.0 for a tunnel)")
-    parser.add_argument("--port", type=int, default=8000, help="port for HTTP")
-    args = parser.parse_args()
-    app = build_app()
-    if args.transport == "http":
-        app.run(transport="streamable-http", host=args.host, port=args.port)
-    else:
-        app.run()
+    build_app().run()
 
 
 if __name__ == "__main__":
