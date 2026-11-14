@@ -7,7 +7,7 @@ playlist, plays, undoes and saves. Every edit is one undo step in the app, so yo
 
 > **Needs a LYNX SHARE build with a control socket.** Official LYNX SHARE releases cannot be controlled from outside.
 > The `control-socket` branch of [calvinw/LYNX-SHARE](https://github.com/calvinw/LYNX-SHARE/tree/control-socket) adds
-> a small local socket (`--control`) and nothing else; it is kept rebased on upstream. If LYNX SHARE ships an official
+> a small local socket (`--control`) and nothing else; it is kept up to date by merging upstream. If LYNX SHARE ships an official
 > control API, this server will move to it.
 
 ## Requirements
