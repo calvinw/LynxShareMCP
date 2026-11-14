@@ -24,7 +24,7 @@ Clone both repos side by side, build LYNX SHARE, then run the installer:
 
 ```sh
 mkdir -p ~/develop && cd ~/develop
-git clone -b control-socket https://github.com/calvinw/LYNX-SHARE.git
+git clone --depth 1 -b control-socket https://github.com/calvinw/LYNX-SHARE.git   # --depth 1: skip upstream's long history
 git clone https://github.com/calvinw/LynxShareMCP.git
 
 cd LYNX-SHARE
@@ -49,7 +49,7 @@ Restart the client afterwards so it loads the tools. Run `./install.sh` again af
 
 **Or let your agent do it.** Paste this into Claude Code or Codex, then restart it when it is done:
 
-> Clone github.com/calvinw/LYNX-SHARE (control-socket branch) and github.com/calvinw/LynxShareMCP side by side in
+> Clone github.com/calvinw/LYNX-SHARE (control-socket branch, --depth 1) and github.com/calvinw/LynxShareMCP side by side in
 > ~/develop, build LYNX SHARE following LynxShareMCP's README, and run ./install.sh.
 
 ### Registering by hand
