@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0 (2026-11-17)
 
 Moves to LYNX SHARE's official Remote Control API (`lynx-control/1`, LYNX SHARE 0.1.28 and later). The
 `control-socket` fork is no longer needed.
@@ -16,6 +16,8 @@ Moves to LYNX SHARE's official Remote Control API (`lynx-control/1`, LYNX SHARE 
   `remote-api-ui` additions; on a stock build they say they are unavailable.
 - Removed: `set_synth` (the API cannot reach the built-in Synth), `get_history`, `apply_commands`, `list_plugins`
   (now `list_instruments`), sample channels. Velocity is now 0..1 and note pan -1..1, as in the API.
+- Works with an official LYNX SHARE release: `install.sh` also finds `/Applications/LYNX.app`, and the README installs
+  from the release instead of building.
 - End-to-end tests run in a throwaway LYNX profile.
 
 ## 0.1.0 (2026-11-14)

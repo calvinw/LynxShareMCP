@@ -4,7 +4,8 @@
 # Usage: ./install.sh [--claude] [--codex] [--lynx /path/to/LYNX]
 #   --claude, --codex   register with only these clients (default: every one that is installed)
 #   --lynx PATH         the LYNX SHARE binary (0.1.28 or later)
-#                       (default: $LYNX_BIN, else a LYNX-SHARE clone next to this folder or in ~/develop)
+#                       (default: $LYNX_BIN, else a LYNX-SHARE build next to this folder or in ~/develop,
+#                       else /Applications/LYNX.app)
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -16,7 +17,7 @@ while [ $# -gt 0 ]; do
     --claude) WANT_CLAUDE=1 ;;
     --codex)  WANT_CODEX=1 ;;
     --lynx)   shift; BIN="${1:?--lynx needs a path}" ;;
-    -h|--help) sed -n 2,7p "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n 2,8p "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "Unknown option: $1 (see --help)"; exit 1 ;;
   esac
   shift
@@ -32,6 +33,11 @@ else REL="build/LYNX_artefacts/Release/LYNX"; fi
 if [ -z "$BIN" ]; then
   for root in "$DIR/../LYNX-SHARE" "$HOME/develop/LYNX-SHARE"; do
     if [ -x "$root/$REL" ]; then BIN="$(cd "$root" && pwd)/$REL"; break; fi
+  done
+fi
+if [ -z "$BIN" ]; then   # an installed release
+  for app in /Applications/LYNX.app "$HOME/Applications/LYNX.app"; do
+    if [ -x "$app/Contents/MacOS/LYNX" ]; then BIN="$app/Contents/MacOS/LYNX"; break; fi
   done
 fi
 if [ -n "$BIN" ] && [ -x "$BIN" ]; then

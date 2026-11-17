@@ -14,30 +14,29 @@ so you can take back anything with Cmd+Z.
 ## Requirements
 
 - macOS or Linux (tested); Windows untested
-- Python 3.10+
-- LYNX SHARE 0.1.28 or later: an official release, or a build of upstream (CMake 3.22+, a C++20 compiler, Git; on
-  Linux, LYNX SHARE's build dependencies first; see its README)
+- Python 3.10+ and Git
+- LYNX SHARE 0.1.28 or later (an official release is fine)
 - Claude Code and/or Codex
 
 ## Install
 
-Clone both repos side by side, build LYNX SHARE, then run the installer:
+**1. Install LYNX SHARE.** Download the latest release from
+[Ka1-S/LYNX-SHARE releases](https://github.com/Ka1-S/LYNX-SHARE/releases) (on a Mac, `LYNX-…-macos-universal.dmg`)
+and drag LYNX SHARE into Applications. The app is not notarized, so the first time Control-click it and choose
+**Open** (on macOS 15+, try once, then System Settings > Privacy & Security > **Open Anyway**), or run
+`xattr -dr com.apple.quarantine /Applications/LYNX.app`.
+
+**2. Install this server:**
 
 ```sh
 mkdir -p ~/develop && cd ~/develop
-git clone --depth 1 https://github.com/Ka1-S/LYNX-SHARE.git   # --depth 1: skip the long history
 git clone https://github.com/calvinw/LynxShareMCP.git
-
-cd LYNX-SHARE
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target LYNX -j        # the first build takes a while
-
-cd ../LynxShareMCP
+cd LynxShareMCP
 ./install.sh
 ```
 
-`install.sh` creates `.venv`, finds the LYNX binary (a `LYNX-SHARE` clone next to this folder or in `~/develop`), and
-registers the server as `lynx-share` with every client it finds:
+`install.sh` creates `.venv`, finds the LYNX binary (a `LYNX-SHARE` build next to this folder or in `~/develop`,
+else `/Applications/LYNX.app`), and registers the server as `lynx-share` with every client it finds:
 
 ```sh
 ./install.sh                    # Claude Code and Codex, whichever are installed
@@ -48,10 +47,24 @@ registers the server as `lynx-share` with every client it finds:
 
 Restart the client afterwards so it loads the tools. Run `./install.sh` again after moving either folder.
 
-**Or let your agent do it.** Paste this into Claude Code or Codex, then restart it when it is done:
+**Or let your agent do it.** After installing LYNX SHARE, paste this into Claude Code or Codex, then restart it when
+it is done:
 
-> Clone github.com/Ka1-S/LYNX-SHARE (--depth 1) and github.com/calvinw/LynxShareMCP side by side in
-> ~/develop, build LYNX SHARE following LynxShareMCP's README, and run ./install.sh.
+> Clone github.com/calvinw/LynxShareMCP into ~/develop and run its ./install.sh.
+
+### Building LYNX SHARE yourself
+
+On Linux, or to get the `remote-api-ui` additions (see [Tools](#tools)), build from source (CMake 3.22+, a C++20
+compiler; on Linux, LYNX SHARE's build dependencies first; see its README) next to this folder, then run
+`./install.sh` again:
+
+```sh
+cd ~/develop
+git clone --depth 1 https://github.com/Ka1-S/LYNX-SHARE.git   # or: -b remote-api-ui https://github.com/calvinw/LYNX-SHARE.git
+cd LYNX-SHARE
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target LYNX -j        # the first build takes a while
+```
 
 ### Registering by hand
 
@@ -62,7 +75,8 @@ claude mcp add --scope user --transport stdio lynx-share \
 codex mcp add lynx-share --env LYNX_BIN=/path/to/LYNX -- /path/to/LynxShareMCP/.venv/bin/python -m lynx_share_mcp
 ```
 
-On macOS the binary is inside the app bundle: `LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX`.
+On macOS the binary is inside the app bundle: `/Applications/LYNX.app/Contents/MacOS/LYNX` for a release,
+`LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX` for a build.
 On Linux it is `LYNX-SHARE/build/LYNX_artefacts/Release/LYNX`.
 
 ## Use
