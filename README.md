@@ -105,13 +105,18 @@ report steps).
 Channels and patterns are named by id, name or index. Positions and lengths are in beats by default
 (`unit="ticks"` for raw ticks).
 
-`save_project`, `new_project`, `pause`, `play(from_position=...)` and `select(channel=..., piano_roll=True)` need four
+`save_project`, `new_project`, `pause`, `play(from_position=...)` and `select(channel=..., piano_roll=True)` need five
 small additions to the API (`project.save`, `project.new`, `transport.pause`, `ui.select`, and `transport.play`'s
-`mode`/`pattern`/`fromTicks`) that are on the `remote-api-ui` branch of
-[calvinw/LYNX-SHARE](https://github.com/calvinw/LYNX-SHARE); with a stock release those tools say they are
-unavailable and everything else works.
+`mode`/`pattern`/`fromTicks`) that are on the
+[`remote-api-ui` branch](https://github.com/calvinw/LYNX-SHARE/tree/remote-api-ui) of calvinw/LYNX-SHARE (upstream
+`main` plus those operations). With a stock release those tools say they are unavailable and everything else works;
+on a stock build `select` can still change the current pattern and the mode, as an undo step.
 
-Not possible through the API yet: shaping the built-in Synth's sound, loading samples, editing while playing.
+Not possible through the API yet: shaping the built-in Synth's sound, loading samples, editing while playing, and
+setting a plugin parameter from text such as "800 Hz".
+
+[docs/REMOTE_API.md](docs/REMOTE_API.md) maps each tool to the API operations behind it and collects what we learned
+about plugin parameters (Serum 2's 2,600 parameters, menu steps, AU vs VST3, renamed macros).
 
 ## Configuration
 
@@ -130,6 +135,10 @@ The app's own output from `lynx_launch` goes to `$TMPDIR/lynx-share-mcp-app.log`
 - **"Project changed since it was read"**: someone edited in the window in between; the agent reads again and retries.
 - **A menu parameter is refused ("did not retain")**: the plugin did not accept a value between its steps; use the
   VST3 version of the plugin, which reports them.
+- **A search for "macro" finds nothing**: the preset renamed Serum 2's macros (e.g. `HPF CUTOFF`, `REVERB`); search
+  for those names instead.
+- **"... cannot save / pause through Remote Control"**: a stock LYNX SHARE; save with Cmd+S, or use a build of the
+  `remote-api-ui` branch.
 
 ## Test
 
@@ -140,6 +149,8 @@ scan, so Serum 2 is found on a Mac that has it) and close it at the end:
 LYNX_BIN=../LYNX-SHARE/build/LYNX_artefacts/Release/LYNX.app/Contents/MacOS/LYNX .venv/bin/pytest -v   # macOS
 LYNX_BIN=../LYNX-SHARE/build/LYNX_artefacts/Release/LYNX .venv/bin/pytest -v                           # Linux
 ```
+
+With a stock build, the test of save, pause and select is skipped; with a `remote-api-ui` build all four run.
 
 ## License
 

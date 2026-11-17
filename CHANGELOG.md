@@ -1,0 +1,23 @@
+# Changelog
+
+## 0.2.0 (unreleased)
+
+Moves to LYNX SHARE's official Remote Control API (`lynx-control/1`, LYNX SHARE 0.1.28 and later). The
+`control-socket` fork is no longer needed.
+
+- New: `plugin_params` and `set_plugin_params` for plugin sounds such as Serum 2: search parameters by name, set
+  several as one undo step, and snap menu values to their steps.
+- New: `set_mixer_track`, `list_instruments` (built-ins and scanned plugins), `new_project`, and `remote_call`, which
+  can run any API operation.
+- Channels and patterns can be named by id, exact name or index.
+- Edits are guarded by the project revision, so an edit planned before a change in the window is refused instead of
+  applied in the wrong place.
+- `save_project`, `new_project`, `pause`, `play(from_position=...)` and `select(channel, piano_roll)` need the
+  `remote-api-ui` additions; on a stock build they say they are unavailable.
+- Removed: `set_synth` (the API cannot reach the built-in Synth), `get_history`, `apply_commands`, `list_plugins`
+  (now `list_instruments`), sample channels. Velocity is now 0..1 and note pan -1..1, as in the API.
+- End-to-end tests run in a throwaway LYNX profile.
+
+## 0.1.0 (2026-11-14)
+
+First release, for the `control-socket` branch of calvinw/LYNX-SHARE.
