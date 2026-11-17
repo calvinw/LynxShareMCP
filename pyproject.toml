@@ -1,7 +1,7 @@
 [project]
 name = "lynx-share-mcp"
 version = "0.1.0"
-description = "MCP server for LYNX SHARE: drives the app over its JSON-RPC control socket."
+description = "MCP server for LYNX SHARE: drives the app through its Remote Control API."
 requires-python = ">=3.10"
 readme = "README.md"
 license = { text = "MIT" }

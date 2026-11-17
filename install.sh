@@ -3,7 +3,7 @@
 #
 # Usage: ./install.sh [--claude] [--codex] [--lynx /path/to/LYNX]
 #   --claude, --codex   register with only these clients (default: every one that is installed)
-#   --lynx PATH         the LYNX SHARE binary built from the control-socket branch
+#   --lynx PATH         the LYNX SHARE binary (0.1.28 or later)
 #                       (default: $LYNX_BIN, else a LYNX-SHARE clone next to this folder or in ~/develop)
 set -euo pipefail
 
@@ -38,7 +38,7 @@ if [ -n "$BIN" ] && [ -x "$BIN" ]; then
   echo "LYNX SHARE: $BIN"
 else
   echo "Warning: no LYNX SHARE binary found${BIN:+ at $BIN}."
-  echo "  Build the control-socket branch of https://github.com/calvinw/LYNX-SHARE (see README.md),"
+  echo "  Install or build LYNX SHARE 0.1.28+ (https://github.com/Ka1-S/LYNX-SHARE, see README.md),"
   echo "  then run ./install.sh --lynx /path/to/LYNX again. lynx_launch will not work until then."
   BIN="${BIN:-$DIR/../LYNX-SHARE/$REL}"
 fi
