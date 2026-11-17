@@ -99,14 +99,19 @@ report steps).
 | Plugin sounds | `plugin_params`, `set_plugin_params` |
 | Patterns and notes | `add_pattern`, `rename_pattern`, `delete_pattern`, `write_notes`, `clear_notes` |
 | Playlist and mixer | `place_pattern`, `delete_clip`, `set_tempo`, `set_mixer_track` |
-| Transport | `play`, `stop`, `transport_status`, `select` |
-| History and raw | `undo`, `redo`, `remote_call` (any Remote Control operation, e.g. `effect.load`) |
+| Transport | `play`, `pause`, `stop`, `transport_status`, `select` |
+| Project | `save_project`, `new_project`, `undo`, `redo`, `remote_call` (any Remote Control operation, e.g. `effect.load`) |
 
 Channels and patterns are named by id, name or index. Positions and lengths are in beats by default
 (`unit="ticks"` for raw ticks).
 
-What the Remote Control API cannot do yet, so neither can this server: save the project, pause, play from a given
-position, open the piano roll or select a channel, shape the built-in Synth's sound, load samples, edit while playing.
+`save_project`, `new_project`, `pause`, `play(from_position=...)` and `select(channel=..., piano_roll=True)` need four
+small additions to the API (`project.save`, `project.new`, `transport.pause`, `ui.select`, and `transport.play`'s
+`mode`/`pattern`/`fromTicks`) that are on the `remote-api-ui` branch of
+[calvinw/LYNX-SHARE](https://github.com/calvinw/LYNX-SHARE); with a stock release those tools say they are
+unavailable and everything else works.
+
+Not possible through the API yet: shaping the built-in Synth's sound, loading samples, editing while playing.
 
 ## Configuration
 

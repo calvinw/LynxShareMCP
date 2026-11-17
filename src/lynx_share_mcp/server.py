@@ -64,7 +64,11 @@ Limits of this API:
 - Edits are refused while LYNX is playing: call stop first.
 - An edit is refused when the project changed since it was read (code "changed"): read again and redo the plan.
 - An "uncertain" error means the edit may have happened: read the project before doing anything else.
-- It cannot save the project, open the piano roll, pause, or start playback from a given position; ask the user.
+- A stock LYNX SHARE release cannot save, pause, play from a position, select a channel or open the piano roll
+  through this API (those tools then say so; ask the user). Builds of calvinw/LYNX-SHARE's remote-api-ui branch can.
+- The piano roll shows ONE channel in the CURRENT pattern. After writing notes the user should look at, call
+  select(pattern=..., channel=..., piano_roll=True).
+- Do not save after every edit: save_project only when the user asks.
 
 Writing music:
 - Chords with no bass under them need the root as the lowest note, or the harmony is misheard.
@@ -91,6 +95,19 @@ def _from_ticks(t: float | None, unit: Unit, ppq: int) -> float | None:
 
 def _binary() -> str:
     return str(Path(os.environ.get("LYNX_BIN", DEFAULT_BIN)).expanduser())
+
+
+_ops: dict[str, set[str]] = {}
+
+
+def _operations() -> set[str]:
+    """api.describe's operations, per running app (its controlEpoch)."""
+    d = client.call("api.describe")
+    key = d["controlEpoch"]
+    if key not in _ops:
+        _ops.clear()
+        _ops[key] = set(d["operations"])
+    return _ops[key]
 
 
 def _session() -> dict[str, Any]:
@@ -541,8 +558,18 @@ def build_app() -> MCPServer:
         return {"track": track}
 
     # ---- transport ------------------------------------------------------------------------------------------
+    def _extended() -> bool:
+        """Whether this LYNX has the ui.select / project.save / transport.pause additions (calvinw/LYNX-SHARE's
+        remote-api-ui branch); a stock release does not."""
+        return "ui.select" in _operations()
+
+    def _need(op: str, what: str) -> None:
+        if op not in _operations():
+            raise LynxError(f"this LYNX SHARE cannot {what} through Remote Control (no {op} operation); "
+                            "ask the user to do it in the window", "invalid")
+
     def _show(mode: str | None, pattern: Ref | None) -> None:
-        """Make `mode`/`pattern` current (a document edit, so only while stopped)."""
+        """Make `mode`/`pattern` current. A stock LYNX can only do it as a document edit (an undo step, stopped)."""
         if mode is None and pattern is None:
             return
         s = _session()
@@ -560,12 +587,32 @@ def build_app() -> MCPServer:
             client.edit_project(patch, snap)
 
     @mcp.tool()
-    def play(mode: Literal["pattern", "song"] | None = None, pattern: Ref | None = None) -> dict:
-        """Start playback from the playhead. mode: "pattern" loops the current pattern, "song" plays the playlist
-        (default: as it is). pattern: make it the current pattern first. Changing either needs playback stopped."""
-        _show(mode, pattern)
-        client.write("transport.play")
-        return _transport(client.call("status"), "beats")
+    def play(mode: Literal["pattern", "song"] | None = None, pattern: Ref | None = None,
+             from_position: float | None = None, unit: Unit = "beats") -> dict:
+        """Start playback. mode: "pattern" loops the current pattern, "song" plays the playlist (default: as it is).
+        pattern: make it the current pattern first. from_position: where to start (default: the playhead, e.g.
+        where pause left it)."""
+        if _extended():
+            s = _session()
+            args: dict[str, Any] = {"mode": mode}
+            if pattern is not None:
+                args["pattern"] = _pattern(s, pattern)["index"]
+            if from_position is not None:
+                args["fromTicks"] = _to_ticks(from_position, unit, s["ppq"])
+            client.write("transport.play", args, observed=s)
+        else:
+            if from_position is not None:
+                _need("transport.pause", "start playback from a given position")
+            _show(mode, pattern)
+            client.write("transport.play")
+        return _transport(client.call("status"), unit)
+
+    @mcp.tool()
+    def pause(unit: Unit = "beats") -> dict:
+        """Stop playback but keep the playhead where it is (play resumes from there)."""
+        _need("transport.pause", "pause")
+        client.call("transport.pause")
+        return _transport(client.call("status"), unit)
 
     @mcp.tool()
     def stop(unit: Unit = "beats") -> dict:
@@ -579,11 +626,46 @@ def build_app() -> MCPServer:
         return _transport(client.call("status"), unit)
 
     @mcp.tool()
-    def select(pattern: Ref | None = None, mode: Literal["pattern", "song"] | None = None) -> dict:
-        """Make `pattern` the current pattern (what the channel rack and piano roll show) and/or switch between
-        pattern and song mode, without playing. Needs playback stopped."""
-        _show(mode, pattern)
+    def select(pattern: Ref | None = None, channel: Ref | None = None, piano_roll: bool = False,
+               mode: Literal["pattern", "song"] | None = None) -> dict:
+        """Change what the user sees, not the music: make `pattern` the current pattern, select `channel` in the
+        channel rack, and with piano_roll=True open the piano roll on them; mode switches pattern/song mode. Use it
+        after writing notes so the user sees them. No undo step (except `mode`)."""
+        if _extended():
+            s = _session()
+            args: dict[str, Any] = {}
+            if pattern is not None:
+                args["pattern"] = _pattern(s, pattern)["index"]
+            if channel is not None:
+                args["channel"] = _channel(s, channel)["index"]
+            if piano_roll:
+                args["pianoRoll"] = True
+            if args:
+                client.call("ui.select", args)
+            _show(mode, None)
+        else:
+            if channel is not None or piano_roll:
+                _need("ui.select", "select a channel or open the piano roll")
+            _show(mode, pattern)
         return _transport(client.call("status"), "beats")
+
+    # ---- the project file -----------------------------------------------------------------------------------
+    @mcp.tool()
+    def save_project(path: str | None = None) -> dict:
+        """Save the project like File > Save: to its own file, or to `path` (a .lynx file; also for a project that
+        has no file yet). Only when the user asks."""
+        _need("project.save", "save")
+        target = str(Path(path).expanduser().resolve()) if path else None
+        return {"path": client.call("project.save", {"path": target}, write=True)["path"]}
+
+    @mcp.tool()
+    def new_project(path: str | None = None) -> dict:
+        """Start a fresh default project (File > New), saved to `path` when given. Refused while the open project
+        has unsaved changes, so nothing is lost: save first (only if the user wants that)."""
+        _need("project.new", "start a new project")
+        target = str(Path(path).expanduser().resolve()) if path else None
+        r = client.call("project.new", {"path": target}, write=True)
+        return {"path": r["path"] or None}
 
     # ---- undo and raw access --------------------------------------------------------------------------------
     @mcp.tool()

@@ -169,3 +169,48 @@ def test_errors(lynx_profile):
             await call("plugin_params", channel=0)  # the demo's Kick is a built-in instrument
 
     run_session(lynx_profile, body)
+
+
+def test_ui_hooks_save_pause_select(lynx_profile, tmp_path):
+    """The remote-api-ui additions: ui.select, transport.pause, play from a position, project.save, project.new."""
+    async def body(call):
+        try:
+            await call("pause")
+        except RuntimeError as e:
+            if "cannot pause" in str(e):
+                pytest.skip("this LYNX build has no ui.select/project.save additions")
+            raise
+
+        ch = (await call("add_channel", name="Keys", instrument="Synth"))["channel"]
+        pat = (await call("add_pattern", name="Chords", bars=2))["pattern"]
+        await call("write_notes", pattern=pat, channel=ch, notes=[{"position": 0, "length": 4, "key": k}
+                                                                    for k in (60, 64, 67)])
+        await call("add_pattern", name="Other")  # becomes current
+        status = await call("lynx_status")
+        shown = await call("select", pattern=pat, channel=ch, piano_roll=True)
+        state = await call("get_project_state")
+        assert state["currentPattern"] == next(p["index"] for p in state["patterns"] if p["patternId"] == pat)
+        assert (await call("lynx_status"))["can_undo"] == status["can_undo"]  # select is not an edit
+
+        t = await call("play", mode="pattern", pattern=pat, from_position=4)
+        assert t["state"] == "playing" and t["mode"] == "pattern", t
+        time.sleep(0.4)
+        paused = await call("pause")
+        assert paused["state"] == "stopped" and paused["position"] >= 4, paused
+        time.sleep(0.3)
+        assert (await call("transport_status"))["position"] == pytest.approx(paused["position"], abs=0.01)
+        await call("stop")
+
+        saved = await call("save_project", path=str(tmp_path / "ui.lynx"))
+        assert os.path.getsize(saved["path"]) > 0
+        assert (await call("save_project"))["path"] == saved["path"]  # its own file now
+
+        await call("set_tempo", bpm=101)
+        with pytest.raises(RuntimeError, match="unsaved"):
+            await call("new_project")
+        await call("save_project")
+        fresh = await call("new_project")
+        state = await call("get_project_state")
+        assert not any(p["patternId"] == pat for p in state["patterns"]), fresh
+
+    run_session(lynx_profile, body)
