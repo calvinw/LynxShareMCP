@@ -173,12 +173,15 @@ def test_errors(lynx_profile):
 
 def test_ui_hooks_save_pause_select(lynx_profile, tmp_path):
     """The remote-api-ui additions: ui.select, transport.pause, play from a position, project.save, project.new."""
+    missing = []  # pytest.skip inside the anyio task group would lose its reason, so skip after the session
+
     async def body(call):
         try:
             await call("pause")
         except RuntimeError as e:
             if "cannot pause" in str(e):
-                pytest.skip("this LYNX build has no ui.select/project.save additions")
+                missing.append(True)
+                return
             raise
 
         ch = (await call("add_channel", name="Keys", instrument="Synth"))["channel"]
@@ -214,3 +217,5 @@ def test_ui_hooks_save_pause_select(lynx_profile, tmp_path):
         assert not any(p["patternId"] == pat for p in state["patterns"]), fresh
 
     run_session(lynx_profile, body)
+    if missing:
+        pytest.skip("this LYNX build has no remote-api-ui additions (stock release)")
