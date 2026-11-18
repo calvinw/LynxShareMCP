@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Docs: `docs/AGENT_SETUP.md`, step-by-step setup instructions for an AI agent (official LYNX SHARE release +
+  this server), linked from the README.
+
 ## 0.2.0 (2026-11-17)
 
 Moves to LYNX SHARE's official Remote Control API (`lynx-control/1`, LYNX SHARE 0.1.28 and later). The

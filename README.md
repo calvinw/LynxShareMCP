@@ -20,6 +20,10 @@ so you can take back anything with Cmd+Z.
 
 ## Install
 
+> **Using an AI agent?** Paste this into Claude Code or Codex and it will do the whole setup:
+> *"Follow https://github.com/calvinw/LynxShareMCP/blob/main/docs/AGENT_SETUP.md to set up LYNX SHARE and the
+> lynx-share MCP server."*
+
 **1. Install LYNX SHARE.** Download the latest release from
 [Ka1-S/LYNX-SHARE releases](https://github.com/Ka1-S/LYNX-SHARE/releases) (on a Mac, `LYNX-…-macos-universal.dmg`)
 and drag LYNX SHARE into Applications. The app is not notarized, so the first time Control-click it and choose
