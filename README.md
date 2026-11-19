@@ -58,13 +58,13 @@ it is done:
 
 ### Building LYNX SHARE yourself
 
-On Linux, or to get the `remote-api-ui` additions (see [Tools](#tools)), build from source (CMake 3.22+, a C++20
-compiler; on Linux, LYNX SHARE's build dependencies first; see its README) next to this folder, then run
-`./install.sh` again:
+Optional: an official release is all you need. To build from source instead (CMake 3.22+, a C++20 compiler; on
+Linux, LYNX SHARE's build dependencies first; see its README), build next to this folder, then run `./install.sh`
+again:
 
 ```sh
 cd ~/develop
-git clone --depth 1 https://github.com/Ka1-S/LYNX-SHARE.git   # or: -b remote-api-ui https://github.com/calvinw/LYNX-SHARE.git
+git clone --depth 1 https://github.com/Ka1-S/LYNX-SHARE.git
 cd LYNX-SHARE
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target LYNX -j        # the first build takes a while
@@ -123,12 +123,10 @@ report steps).
 Channels and patterns are named by id, name or index. Positions and lengths are in beats by default
 (`unit="ticks"` for raw ticks).
 
-`save_project`, `new_project`, `pause`, `play(from_position=...)` and `select(channel=..., piano_roll=True)` need five
-small additions to the API (`project.save`, `project.new`, `transport.pause`, `ui.select`, and `transport.play`'s
-`mode`/`pattern`/`fromTicks`) that are on the
-[`remote-api-ui` branch](https://github.com/calvinw/LYNX-SHARE/tree/remote-api-ui) of calvinw/LYNX-SHARE (upstream
-`main` plus those operations). With a stock release those tools say they are unavailable and everything else works;
-on a stock build `select` can still change the current pattern and the mode, as an undo step.
+With an official release, five things stay manual because the Remote Control API does not offer them yet: saving
+(Cmd+S), starting a new project, pause, playing from a position, and selecting a channel or opening the piano roll.
+`save_project`, `new_project`, `pause`, `play(from_position=...)` and `select(channel=..., piano_roll=True)` say so
+when called; everything else works. `select` can still change the current pattern and the mode, as an undo step.
 
 Not possible through the API yet: shaping the built-in Synth's sound, loading samples, editing while playing, and
 setting a plugin parameter from text such as "800 Hz".
@@ -155,8 +153,7 @@ The app's own output from `lynx_launch` goes to `$TMPDIR/lynx-share-mcp-app.log`
   VST3 version of the plugin, which reports them.
 - **A search for "macro" finds nothing**: the preset renamed Serum 2's macros (e.g. `HPF CUTOFF`, `REVERB`); search
   for those names instead.
-- **"... cannot save / pause through Remote Control"**: a stock LYNX SHARE; save with Cmd+S, or use a build of the
-  `remote-api-ui` branch.
+- **"... cannot save / pause through Remote Control"**: expected with an official release; save with Cmd+S.
 
 ## Test
 

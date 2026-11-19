@@ -4,6 +4,8 @@
 
 - Docs: `docs/AGENT_SETUP.md`, step-by-step setup instructions for an AI agent (official LYNX SHARE release +
   this server), linked from the README.
+- Docs: the README describes the official LYNX SHARE release only; the optional source build no longer points
+  at a fork.
 
 ## 0.2.0 (2026-11-17)
 
