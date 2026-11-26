@@ -39,6 +39,8 @@ NOTE_DEFAULTS: dict[str, Any] = {
     "finePitch": 0.0, "slide": False, "porta": False, "release": 0.5, "modX": 0.5, "modY": 0.5, "colour": 0,
     "group": 0, "chance": 1.0, "velocityRange": 0.0, "chanceGroup": 0, "chanceOne": False,
 }
+# LYNX SHARE 0.1.30+ requires each note's MPE curves; 0.1.29 rejects the field. Added only when the app wants it.
+NO_EXPRESSION: dict[str, Any] = {"pitch": [], "timbre": [], "pressure": []}
 CONTINUOUS = 2**31 - 1  # numSteps of a continuous parameter
 
 INSTRUCTIONS = """\
@@ -367,7 +369,7 @@ def build_app() -> MCPServer:
                 n["channel"] = ci
             n["start"] = _to_ticks(n.pop("position", 0), unit, s["ppq"])
             n["length"] = _to_ticks(n["length"], unit, s["ppq"]) if "length" in n else s["ppq"] // 4
-            unknown = set(n) - set(NOTE_DEFAULTS)
+            unknown = set(n) - set(NOTE_DEFAULTS) - {"expression"}
             if unknown:
                 raise LynxError(f"unknown note fields: {sorted(unknown)}", "invalid")
             new.append({**NOTE_DEFAULTS, **n})
@@ -376,7 +378,17 @@ def build_app() -> MCPServer:
             kept = [] if ci is None else [x for x in old if x["channel"] != ci]
         else:
             kept = old
-        r = client.write("pattern.replace_notes", {"index": p["index"], "notes": kept + new}, observed=s)
+        notes_out = kept + new
+        if any("expression" in x for x in old):
+            notes_out = [{"expression": NO_EXPRESSION, **x} for x in notes_out]
+        try:
+            r = client.write("pattern.replace_notes", {"index": p["index"], "notes": notes_out}, observed=s)
+        except LynxError as e:
+            if "expression" not in str(e) or all("expression" in x for x in notes_out):
+                raise
+            # A refused edit changed nothing: send again with every note's expression (newer LYNX).
+            notes_out = [{"expression": NO_EXPRESSION, **x} for x in notes_out]
+            r = client.write("pattern.replace_notes", {"index": p["index"], "notes": notes_out}, observed=s)
         return {"pattern": p["patternId"], "written": len(new), "replaced": replace, "total_notes": r["noteCount"]}
 
     @mcp.tool()

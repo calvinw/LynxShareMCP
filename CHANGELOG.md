@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.2.1 (2026-11-26)
+
+- Fix: `write_notes` works with LYNX SHARE 0.1.30 and later, which require every note's `expression` (MPE
+  curves). It is sent only to a LYNX that wants it, so 0.1.28 and 0.1.29 keep working.
 - Docs: `docs/AGENT_SETUP.md`, step-by-step setup instructions for an AI agent (official LYNX SHARE release +
   this server), linked from the README.
 - Docs: the README describes the official LYNX SHARE release only; the optional source build no longer points
